@@ -30,7 +30,7 @@ bool Initiator::getIRQstatus() {
 int main(int argc, char* argv[]) {
 	std::fstream handle;
 	if (argc > 1){
-		handle.open(argv[1]);
+		handle.open(argv[1], std::ios::binary | std::ios::in | std::ios::out);
 	}
 	if (!handle.is_open()) {
 		cerr << "autsch" << endl;
@@ -46,13 +46,13 @@ int main(int argc, char* argv[]) {
 		cout << "write 0x" << hex << address << " value " << payload << dec << endl;
 		auto stat = initiator.write(0x00000000, 0xFF);
 		if(stat != ResponseStatus::Ack::ok) {
-			cerr << "Nak on write" << endl;
+			cerr << "Nak on write: " << static_cast<unsigned>(stat) << endl;
 			break;
 		}
-		cout << "read 0x" << hex << address << dec;
+		cout << "read 0x" << hex << address << dec << endl;
 		auto ret = initiator.read(0x00000000);
 		if(ret.status.ack != ResponseStatus::Ack::ok) {
-			cerr << "Nak on read" << endl;
+			cerr << "Nak on read: "  << static_cast<unsigned>(ret.status.ack) << endl;
 			break;
 		}
 		cout << hex << ret.payload << dec << endl;

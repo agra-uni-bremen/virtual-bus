@@ -2,15 +2,22 @@ CC=g++
 CFLAGS=-std=c++17 -g2
 
 INCLUDES=protocol.hpp magic.hpp
+EXES=initiator responder
+FIFO=fifo
 
-all: initiator responder
+all: $(EXES)
 
-initiator: initiator.cpp $(INCLUDES)
+%: %.cpp $(INCLUDES)
 	$(CC) $(CFLAGS) -o $@ $<
 
-responder: responder.cpp $(INCLUDES)
-	$(CC) $(CFLAGS) -o $@ $<	
+fifo:
+	mkfifo $(FIFO)
+
+sim: $(EXES) $(FIFO)
+	./responder $(FIFO) &
+	./initiator $(FIFO) &
 
 clean:
 	rm -rf *.o
-	rm initiator responder
+	rm $(FIFO)
+	rm $(EXES)

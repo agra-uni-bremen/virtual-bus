@@ -12,6 +12,9 @@ public:
 		hwitl::Address from;
 		hwitl::Address to;
 	};
+static const bool isAddressRangeValid(AddressRange& r){
+    return r.from != 0 && r.from < r.to;
+}
 	typedef std::function<hwitl::Payload(hwitl::Address)> ReadCallback;
 	typedef std::function<void(hwitl::Address,hwitl::Payload)> WriteCallback;
 	struct CallbackEntry{
