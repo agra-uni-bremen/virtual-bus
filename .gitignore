@@ -3,3 +3,4 @@
 .settings/
 *.o
 *-cli
+pipe_*
