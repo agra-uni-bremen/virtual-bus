@@ -12,7 +12,7 @@ public:
 		hwitl::Address from;
 		hwitl::Address to;
 	};
-static const bool isAddressRangeValid(AddressRange& r){
+static bool isAddressRangeValid(AddressRange& r){
     return r.from < r.to;
 }
 	typedef std::function<hwitl::Payload(hwitl::Address)> ReadCallback;

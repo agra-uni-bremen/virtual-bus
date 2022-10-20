@@ -15,7 +15,7 @@ Responder::CallbackEntry Responder::getRegisteredCallback(hwitl::Address target)
 		}
 	}
 	//cout << "Callback not found" << endl;
-	return Responder::CallbackEntry{{0,0}};
+	return Responder::CallbackEntry{{0,0},nullptr,nullptr};
 }
 void Responder::addCallback(CallbackEntry callback) {
 	if(!isAddressRangeValid(callback.range)) {
