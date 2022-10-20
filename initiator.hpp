@@ -11,5 +11,6 @@ public:
 
 	hwitl::ResponseRead read(hwitl::Address pl);
 	hwitl::ResponseStatus::Ack write(hwitl::Address address, hwitl::Payload pl);
+	hwitl::ResponseStatus::Ack update();
 	bool getIRQstatus();
 };

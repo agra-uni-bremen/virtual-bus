@@ -9,7 +9,8 @@ using namespace hwitl;
 
 Payload genericReadCallback(Address address) {
 	cout << "[Callback] read 0x" << hex << address << dec << endl;
-	return 0x1337;
+	static char b = 'A';
+	return b++;
 }
 
 void genericWriteCallback(Address address, Payload payload) {
@@ -29,7 +30,7 @@ int main(int argc, char* argv[]) {
 	Responder responder(handle);
 
 	responder.addCallback(Responder::CallbackEntry{
-			.range = Responder::AddressRange{.from = 0x0000, .to = 0xFFFF},
+			.range = Responder::AddressRange{.from = 0x0000, .to = 0xFFFFFFFF},
 			.read = bind(genericReadCallback, placeholders::_1),
 			.write = bind(genericWriteCallback, placeholders::_1, placeholders::_2)}
 	);

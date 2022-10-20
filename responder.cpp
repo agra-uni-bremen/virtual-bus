@@ -80,6 +80,17 @@ void Responder::listener() {
 			}
 		}
 		break;
+		case Request::Command::keepalive:
+		{
+			ResponseStatus stat{irq_active, ResponseStatus::Ack::ok};
+			if(!writeStruct(m_handle, stat)) {
+				cerr << "[responder] error writing keepalive" << strerror(errno) << endl;
+			}
+			break;
+		}
+		case Request::Command::exit:
+			cerr << "graceful exit" << endl;
+			return;
 		default:
 			cerr << "auerhahn" << endl;
 			return;

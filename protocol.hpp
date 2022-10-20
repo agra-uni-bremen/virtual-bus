@@ -20,7 +20,8 @@ struct __attribute__((packed)) Request {
 		write,
 		getIRQ,
 		keepalive,
-		setTime
+		setTime,
+		exit
 	} command;
 	Address address;
 };
