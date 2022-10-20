@@ -13,7 +13,7 @@ public:
 		hwitl::Address to;
 	};
 static const bool isAddressRangeValid(AddressRange& r){
-    return r.from != 0 && r.from < r.to;
+    return r.from < r.to;
 }
 	typedef std::function<hwitl::Payload(hwitl::Address)> ReadCallback;
 	typedef std::function<void(hwitl::Address,hwitl::Payload)> WriteCallback;
@@ -23,12 +23,12 @@ static const bool isAddressRangeValid(AddressRange& r){
 		WriteCallback write;
 	};
 private:
-	std::fstream& m_handle;
+	int m_handle;
 	bool irq_active;
 	std::list<CallbackEntry> registeredRanges;
 	CallbackEntry getRegisteredCallback(hwitl::Address);
 public:
-	Responder(std::fstream& handle) : m_handle(handle), irq_active(false){};
+	Responder(int handle) : m_handle(handle), irq_active(false){};
 
 	void addCallback(CallbackEntry);
 	void listener();

@@ -1,6 +1,8 @@
 #include <iostream>
 #include "responder.hpp"
-#include <fstream>
+#include <fcntl.h>	// File control definitions
+#include <errno.h>	// errno
+#include <string.h>	// strerror
 
 using namespace std;
 using namespace hwitl;
@@ -17,19 +19,22 @@ Responder::CallbackEntry Responder::getRegisteredCallback(hwitl::Address target)
 	return Responder::CallbackEntry{{0,0}};
 }
 void Responder::addCallback(CallbackEntry callback) {
-	if(isAddressRangeValid(callback.range)) {
+	if(!isAddressRangeValid(callback.range)) {
 		cerr << "Callback bad" << endl;
+		return;
 	}
 	registeredRanges.emplace_front(callback);
 }
 void Responder::listener() {
 	cout << "listening" << endl;
-	while(m_handle.is_open()) {
+	while(m_handle) {
 		Request req;
-		readStruct(m_handle, req);
+		if(!readStruct(m_handle, req)) {
+			cerr << "[responder] error reading request" << endl;
+			return;
+		}
 		auto callback = getRegisteredCallback(req.address);
 		const bool is_mapped = isAddressRangeValid(callback.range);
-		cout << "Got " << static_cast<unsigned>(req.command) << " request on 0x" << hex << req.address << dec << endl;
 		switch(req.command) {
 		case Request::Command::read:
 		{
@@ -47,14 +52,18 @@ void Responder::listener() {
 				}
 			}
 			ResponseRead response{stat, payload};
-			writeStruct(m_handle, response);
+			if(!writeStruct(m_handle, response)) {
+				cerr << "[responder] error writing response read" << strerror(errno) << endl;
+			}
 		}
 		break;
 		case Request::Command::write:
 		{
 			ResponseStatus stat{irq_active, ResponseStatus::Ack::ok};
 			Payload payload;
-			readStruct(m_handle, payload);
+			if(!readStruct(m_handle, payload)){
+				cerr << "[responder] error reading payload" << strerror(errno) << endl;
+			}
 			if(!is_mapped) {
     			cerr << "Callback on address 0x" << hex << req.address << dec << " not mapped" << endl;
 				stat.ack = ResponseStatus::Ack::not_mapped;
@@ -67,7 +76,9 @@ void Responder::listener() {
 				}
 			}
 			ResponseWrite response{stat};
-			writeStruct(m_handle, response);
+			if(!writeStruct(m_handle, response)) {
+				cerr << "[responder] error writing response write" << strerror(errno) << endl;
+			}
 		}
 		break;
 		default:
@@ -93,12 +104,13 @@ void genericWriteCallback(Address address, Payload payload) {
 }
 
 int main(int argc, char* argv[]) {
-	std::fstream handle;
+	int handle;
 	if (argc > 1){
-		handle.open(argv[1], std::ios::binary | std::ios::in | std::ios::out);
+		handle = open(argv[1], O_RDWR| O_NOCTTY);
+		// todo set tty stuff
 	}
-	if (!handle.is_open()) {
-		cerr << "autsch" << endl;
+	if (!handle) {
+		cerr << "autsch " << strerror(errno) << endl;
 		return -1;
 	}
 

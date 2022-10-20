@@ -6,14 +6,14 @@
  */
 
 #pragma once
-#include <fstream>
+#include <unistd.h>
 
 template<typename T>
-void writeStruct(std::fstream& handle, T& pl) {
-	handle.write(reinterpret_cast<char*>(&pl), sizeof(T));
+int writeStruct(int handle, T& pl) {
+	return write(handle, reinterpret_cast<char*>(&pl), sizeof(T));
 }
 
 template<typename T>
-void readStruct(std::fstream& handle, T& pl) {
-	handle.read(reinterpret_cast<char*>(&pl), sizeof(T));
+bool readStruct(int handle, T& pl) {
+	return read(handle, reinterpret_cast<char*>(&pl), sizeof(T));
 }
