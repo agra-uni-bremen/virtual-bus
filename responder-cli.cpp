@@ -17,13 +17,12 @@ void genericWriteCallback(Address address, Payload payload) {
 }
 
 int main(int argc, char* argv[]) {
-	int handle;
+	int handle = -1;
 	if (argc > 1){
 		handle = open(argv[1], O_RDWR| O_NOCTTY);
-		// todo set tty stuff
 	}
-	if (!handle) {
-		cerr << "autsch " << strerror(errno) << endl;
+	if (handle < 0) {
+		cerr << "autsch: " << strerror(errno) << endl;
 		return -1;
 	}
 
