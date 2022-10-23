@@ -24,7 +24,7 @@ static bool isAddressRangeValid(AddressRange& r){
 	};
 private:
 	int m_handle;
-	bool irq_active;
+	volatile bool irq_active;
 	std::list<CallbackEntry> registeredRanges;
 	CallbackEntry getRegisteredCallback(hwitl::Address);
 public:
@@ -32,5 +32,5 @@ public:
 
 	void addCallback(CallbackEntry);
 	void listener();
-	void setIRQ();
+	void setIRQ(bool active = true);
 };

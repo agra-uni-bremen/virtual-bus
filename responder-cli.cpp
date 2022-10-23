@@ -3,18 +3,30 @@
 #include <fcntl.h>	// File control definitions
 #include <errno.h>	// errno
 #include <string.h>	// strerror
+#include <thread>
 
 using namespace std;
 using namespace hwitl;
 
 Payload genericReadCallback(Address address) {
-	cout << "[Callback] read 0x" << hex << address << dec << endl;
+	cout << "[responder-cli] [Callback] read 0x" << hex << address << dec << endl;
 	static char b = 'A';
 	return b++;
 }
 
 void genericWriteCallback(Address address, Payload payload) {
-	cout << "[Callback] write 0x" << hex << address << " value " << payload << dec << endl;
+	cout << "[responder-cli] [Callback] write 0x" << hex << address << " value " << payload << dec << endl;
+}
+
+void generateInterrupts(Responder& responder){
+	bool on = true;
+	while(true) {
+		if(on)
+			cout << "[responder-cli] triggered interrupt" << endl;
+		responder.setIRQ(on);
+		sleep(1);
+		on = !on;
+	}
 }
 
 int main(int argc, char* argv[]) {
@@ -35,7 +47,13 @@ int main(int argc, char* argv[]) {
 			.write = bind(genericWriteCallback, placeholders::_1, placeholders::_2)}
 	);
 
-	responder.listener();
+	thread listener = thread(&Responder::listener, &responder);
+	thread interruptor = thread([&responder](){generateInterrupts(responder);});
+
+	if(listener.joinable())
+		listener.join();
+
+	// don't care for interruptor thread
 
 	cerr << "end" << endl;
 	return 0;

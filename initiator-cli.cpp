@@ -37,6 +37,8 @@ int main(int argc, char* argv[]) {
 			break;
 		}
 		cout << "value 0x" << hex << ret.payload << dec << endl;
+		if(initiator.getInterrupt())
+			cout << "Interrupt was triggered" << endl;
 		sleep(1);
 	}
 

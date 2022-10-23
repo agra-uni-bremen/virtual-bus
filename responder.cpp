@@ -34,10 +34,10 @@ void Responder::listener() {
 		}
 		auto callback = getRegisteredCallback(req.address);
 		const bool is_mapped = isAddressRangeValid(callback.range);
+		ResponseStatus stat{irq_active, ResponseStatus::Ack::ok};
 		switch(req.command) {
 		case Request::Command::read:
 		{
-			ResponseStatus stat{irq_active, ResponseStatus::Ack::ok};
 			Payload payload = 0;
 			if(!is_mapped) {
     			cerr << "Callback on address 0x" << hex << req.address << dec << " not mapped" << endl;
@@ -58,7 +58,6 @@ void Responder::listener() {
 		break;
 		case Request::Command::write:
 		{
-			ResponseStatus stat{irq_active, ResponseStatus::Ack::ok};
 			Payload payload;
 			if(!readStruct(m_handle, payload)){
 				cerr << "[responder] error reading payload" << strerror(errno) << endl;
@@ -81,13 +80,11 @@ void Responder::listener() {
 		}
 		break;
 		case Request::Command::keepalive:
-		{
-			ResponseStatus stat{irq_active, ResponseStatus::Ack::ok};
+		case Request::Command::getIRQ:
 			if(!writeStruct(m_handle, stat)) {
 				cerr << "[responder] error writing keepalive" << strerror(errno) << endl;
 			}
 			break;
-		}
 		case Request::Command::exit:
 			cerr << "graceful exit" << endl;
 			return;
@@ -97,7 +94,7 @@ void Responder::listener() {
 		}
 	}
 }
-void Responder::setIRQ() {
-	irq_active = true;
+void Responder::setIRQ(bool active) {
+	irq_active = active;
 }
 

@@ -41,6 +41,9 @@ ResponseStatus::Ack Initiator::update() {
 	return res.ack;
 }
 
-bool Initiator::getIRQstatus() {
+bool Initiator::getInterrupt() {
+	if(!is_irq_waiting) {
+		update();	// is getIRQ necessary?
+	}
 	return is_irq_waiting;
 }
