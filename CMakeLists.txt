@@ -19,5 +19,5 @@ add_executable(responder-cli
 	responder-cli.cpp
 )
 
-target_link_libraries(initiator-cli virtual-bus)
-target_link_libraries(responder-cli virtual-bus)
+target_link_libraries(initiator-cli virtual-bus pthread)
+target_link_libraries(responder-cli virtual-bus pthread)
