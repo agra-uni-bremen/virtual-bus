@@ -18,6 +18,6 @@ add_executable(initiator-cli
 add_executable(responder-cli
 	responder-cli.cpp
 )
-
+target_compile_features(responder-cli PRIVATE cxx_std_20)
 target_link_libraries(initiator-cli virtual-bus pthread)
 target_link_libraries(responder-cli virtual-bus pthread)
