@@ -1,5 +1,7 @@
+project(peripheral-in-the-loop)
+
 file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h*)
-set(SOURCES 
+set(SOURCES
 	initiator.cpp
 	responder.cpp
 )
