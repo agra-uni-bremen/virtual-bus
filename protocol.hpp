@@ -15,11 +15,10 @@ typedef uint32_t Payload;
 
 struct __attribute__((packed)) Request {
 	enum class Command : uint8_t {
-		invalid = 0,
+		reset = 0,
 		read = 1,
 		write,
 		getIRQ,
-		keepalive,
 		setTime,
 		exit
 	} command;
@@ -32,7 +31,7 @@ struct __attribute__((packed)) ResponseStatus {
 		never = 0,
 		ok = 1,
 		not_mapped,
-		other_problem
+		command_not_supported
 	} ack : 7;
 };
 

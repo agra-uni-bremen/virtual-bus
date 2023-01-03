@@ -30,7 +30,7 @@ ResponseStatus::Ack Initiator::write(Address address, Payload pl) {
 }
 
 ResponseStatus::Ack Initiator::update() {
-	Request req {Request::Command::keepalive, 0};
+	Request req {Request::Command::getIRQ, 0};
 	if(!writeStruct(m_handle, req))
 		cerr << "[Initiator read] Error transmitting request" << endl;
 	ResponseStatus res{};

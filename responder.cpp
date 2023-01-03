@@ -45,7 +45,7 @@ void Responder::listener() {
 			} else {
 				if(!callback.read) {
     				cerr << "Callback on address 0x" << hex << req.address << dec << " not readable" << endl;
-					stat.ack = ResponseStatus::Ack::other_problem;
+					stat.ack = ResponseStatus::Ack::command_not_supported;
 				} else {
 					payload = callback.read(req.address);
 				}
@@ -68,7 +68,7 @@ void Responder::listener() {
 			} else {
 				if(!callback.write) {
 					cerr << "Callback on address 0x" << hex << req.address << dec << " not writable" << endl;
-					stat.ack = ResponseStatus::Ack::other_problem;
+					stat.ack = ResponseStatus::Ack::command_not_supported;
 				} else {
 					callback.write(req.address, payload);
 				}
@@ -79,7 +79,6 @@ void Responder::listener() {
 			}
 		}
 		break;
-		case Request::Command::keepalive:
 		case Request::Command::getIRQ:
 			if(!writeStruct(m_handle, stat)) {
 				cerr << "[responder] error writing keepalive" << strerror(errno) << endl;
@@ -89,7 +88,13 @@ void Responder::listener() {
 			cerr << "graceful exit" << endl;
 			return;
 		default:
-			cerr << "auerhahn" << endl;
+		{
+			stat.ack = ResponseStatus::Ack::command_not_supported;
+			ResponseWrite response{stat};
+			if(!writeStruct(m_handle, response)) {
+				cerr << "[responder] error writing response write" << strerror(errno) << endl;
+			}
+		}
 			return;
 		}
 	}
