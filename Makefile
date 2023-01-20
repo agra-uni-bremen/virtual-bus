@@ -2,7 +2,7 @@ CC=g++
 CFLAGS=-std=c++17 -g2
 
 INCLUDES=protocol.hpp magic.hpp
-OBJECTS=initiator.o responder.o
+OBJECTS=protocol.o initiator.o responder.o
 EXES=initiator-cli responder-cli
 
 all: $(EXES)
@@ -23,6 +23,10 @@ pipe_right pipe_left:
 sim: $(EXES) pipe_right pipe_left
 	./responder-cli pipe_right &
 	./initiator-cli pipe_left &
+
+sim-stop:
+	killall responder-cli || true
+	killall initator-cli || true
 
 clean:
 	killall socat

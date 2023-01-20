@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include "protocol.hpp"
 #include <unistd.h>
 
 template<typename T>
@@ -17,3 +18,9 @@ template<typename T>
 bool readStruct(int handle, T& pl) {
 	return read(handle, reinterpret_cast<char*>(&pl), sizeof(T));
 }
+
+template<>
+int writeStruct(int handle, hwitl::ResponseRead& pl);
+
+template<>
+bool readStruct(int handle, hwitl::ResponseRead& pl);
