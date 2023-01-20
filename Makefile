@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-std=c++17 -g2
+CFLAGS=-std=c++17 -g2 -Wall
 
 INCLUDES=protocol.hpp magic.hpp
 OBJECTS=protocol.o initiator.o responder.o

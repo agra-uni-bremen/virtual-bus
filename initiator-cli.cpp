@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
 
 	// optional arguments
 	if (argc > 2) {
-		for(unsigned i = 2; i < argc; i++) {
+		for(int i = 2; i < argc; i++) {
 			if(strcmp(argv[i], "--baudrate") == 0) {
 				if(argc <= i+1) {
 					cerr << "Baudrate needs an argument!" << endl;
