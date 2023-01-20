@@ -53,7 +53,7 @@ void readWriteAtZero(Initiator& remote) {
 void sweepAddressRoom(Initiator& remote) {
 	constexpr Address startAddr = 0x00000000;
 	constexpr Address   endAddr = 0x0000FFFF;
-	constexpr Payload payload = 0x8BADF00D;
+	constexpr Payload payload   = 0x8BADF00D;
 	constexpr Address printStep = 0x00001000;
 	for(Address address = startAddr; address <= endAddr; address += sizeof(Payload)) {
 		if(address % printStep == 0) {
@@ -64,6 +64,9 @@ void sweepAddressRoom(Initiator& remote) {
 			// nothing
 		} else if(ret.status.ack == ResponseStatus::Ack::ok) {
 			cout << "[Initiator] \t" << "Found Register at " << HexPrint{address} << " : " << HexPrint{ret.payload} << endl;
+			if(remote.write(address, payload) == ResponseStatus::Ack::ok) {
+				cout << "[Initiator] \t" << "Wrote " << HexPrint{payload} << " successfully." << endl;
+			}
 		} else {
 			cout << "[Initiator] Other error at " << HexPrint{address} << ": [" << static_cast<int>(ret.status.ack) << "]" << endl;
 		}
