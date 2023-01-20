@@ -13,7 +13,7 @@ all: $(EXES)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 %-cli: %-cli.cpp $(OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $< $(OBJECTS)
+	$(CC) $(CFLAGS) -pthread -o $@ $< $(OBJECTS)
 
 pipe_right pipe_left:
 	#mkfifo fifo
