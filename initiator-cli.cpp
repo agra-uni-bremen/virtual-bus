@@ -4,6 +4,7 @@
 #include <fcntl.h>	// File control definitions
 #include <errno.h>	// errno
 #include <string.h>	// strerror
+#include <iomanip>	// setw()
 
 using namespace std;
 using namespace hwitl;
@@ -31,20 +32,21 @@ void readWriteAtZero(Initiator& remote) {
 }
 
 void sweepAddressRoom(Initiator& remote) {
-	constexpr Address maxAddr = 0x0000FFFF;
+	constexpr Address startAddr = 0x00000000;
+	constexpr Address   endAddr = 0x0000FFFF;
 	constexpr Payload payload = 0x8BADF00D;
 	constexpr Address printStep = 0x00001000;
-	for(Address address = 0x00000000; address <= maxAddr; address += sizeof(Payload)) {
+	for(Address address = startAddr; address <= endAddr; address += sizeof(Payload)) {
 		if(address % printStep == 0) {
-			cout << hex << "Scanning " << "0x" << address << " - 0x" << (address + printStep) << " ..." << endl;
+			cout << hex << setw(sizeof(Payload)) << "Scanning " << "0x" << address << " - 0x" << (address + printStep) << " ..." << endl;
 		}
 		auto ret = remote.read(address);
 		if(ret.status.ack == ResponseStatus::Ack::not_mapped) {
 			// nothing
 		} else if(ret.status.ack == ResponseStatus::Ack::ok) {
-			cout << hex << "\t" << "Found Register at 0x" << address << " : 0x" << ret.payload << endl;
+			cout << hex << setw(sizeof(Payload)) << "\t" << "Found Register at 0x" << address << " : 0x" << ret.payload << endl;
 		} else {
-			cerr << hex << "Other error at 0x" << address << ": [0x" << ret.status.ack << "]";
+			cout << hex << setw(sizeof(Payload)) << "Other error at 0x" << address << ": [0x" << static_cast<int>(ret.status.ack) << "]";
 		}
 	}
 }
