@@ -25,6 +25,7 @@ sim: $(EXES) pipe_right pipe_left
 	./initiator-cli pipe_left &
 
 sim-stop:
+	killall socat || true
 	killall responder-cli || true
 	killall initator-cli || true
 

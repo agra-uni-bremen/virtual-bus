@@ -5,29 +5,48 @@
 #include <errno.h>	// errno
 #include <string.h>	// strerror
 #include <iomanip>	// setw()
+#include <utility>
 
 using namespace std;
 using namespace hwitl;
+
+template<typename T>
+struct HexPrint {
+	HexPrint(T a) : a(a){};
+	T a;
+};
+
+template<typename T>
+std::ostream& operator<<( std::ostream& o, const HexPrint<T>& a ){
+	const auto flags = o.flags();
+	o << "0x";
+	o << setfill('.');
+	o << setw( sizeof(T) * 2);
+	o << hex;
+	o << a.a;
+	o.setf(flags);
+	return o;
+}
 
 void readWriteAtZero(Initiator& remote) {
 	constexpr Address address = 0x00000000;
 	constexpr Payload payload = 0xFF;
 
-	cout << "write 0x" << hex << address << " value " << payload << dec << endl;
+	cout << "[Initiator] write " << HexPrint{address} << " value " << payload << endl;
 	auto stat = remote.write(address, payload);
 	if(stat != ResponseStatus::Ack::ok) {
-		cerr << "Nak on write: " << static_cast<unsigned>(stat) << endl;
+		cerr << "[Initiator] Nak on write: " << static_cast<unsigned>(stat) << endl;
 		return;
 	}
-	cout << "read 0x" << hex << address << dec << " ";
+	cout << "[Initiator] read " << HexPrint{address} << " ";
 	auto ret = remote.read(address);
 	if(ret.status.ack != ResponseStatus::Ack::ok) {
-		cerr << "Nak on read: "  << static_cast<unsigned>(ret.status.ack) << endl;
+		cerr << "[Initiator] Nak on read: "  << static_cast<unsigned>(ret.status.ack) << endl;
 		return;
 	}
-	cout << "value 0x" << hex << ret.payload << dec << endl;
+	cout << "[Initiator] value " << HexPrint{ret.payload} << endl;
 	if(remote.getInterrupt())
-		cout << "Interrupt was triggered" << endl;
+		cout << "[Initiator] Interrupt was triggered" << endl;
 	sleep(1);
 }
 
@@ -38,15 +57,15 @@ void sweepAddressRoom(Initiator& remote) {
 	constexpr Address printStep = 0x00001000;
 	for(Address address = startAddr; address <= endAddr; address += sizeof(Payload)) {
 		if(address % printStep == 0) {
-			cout << hex << setw(sizeof(Payload)) << "Scanning " << "0x" << address << " - 0x" << (address + printStep) << " ..." << endl;
+			cout << "[Initiator] Scanning " << HexPrint{address} << " - " << HexPrint{(address + printStep)} << " ..." << endl;
 		}
 		auto ret = remote.read(address);
 		if(ret.status.ack == ResponseStatus::Ack::not_mapped) {
 			// nothing
 		} else if(ret.status.ack == ResponseStatus::Ack::ok) {
-			cout << hex << setw(sizeof(Payload)) << "\t" << "Found Register at 0x" << address << " : 0x" << ret.payload << endl;
+			cout << "[Initiator] \t" << "Found Register at " << HexPrint{address} << " : " << HexPrint{ret.payload} << endl;
 		} else {
-			cout << hex << setw(sizeof(Payload)) << "Other error at 0x" << address << ": [0x" << static_cast<int>(ret.status.ack) << "]";
+			cout << "[Initiator] Other error at " << HexPrint{address} << ": [" << static_cast<int>(ret.status.ack) << "]" << endl;
 		}
 	}
 }
@@ -57,17 +76,18 @@ int main(int argc, char* argv[]) {
 		handle = open(argv[1], O_RDWR| O_NOCTTY);
 	}
 	if (handle < 0) {
-		cerr << "autsch: " << strerror(errno) << endl;
+		cerr << "[Initiator] autsch: " << strerror(errno) << endl;
 		return -1;
 	}
 
 	Initiator initiator(handle);
 
-	while(handle) {
+	//while(handle) {
 		// different modes
 		sweepAddressRoom(initiator);
-	}
+	//}
 
-	cerr << "end" << endl;
+	close(handle);
+	cerr << "[Initiator] end" << endl;
 	return 0;
 }
