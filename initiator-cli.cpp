@@ -5,7 +5,7 @@
 #include <errno.h>	// errno
 #include <string.h>	// strerror
 #include <iomanip>	// setw()
-#include <utility>
+#include <termios.h> // Contains POSIX terminal control definitions (setbaudrate)
 
 using namespace std;
 using namespace hwitl;
@@ -73,15 +73,77 @@ void sweepAddressRoom(Initiator& remote) {
 	}
 }
 
+bool setBaudrate(int handle, unsigned baudrate) {
+	struct termios tty;
+	if(tcgetattr(handle, &tty) != 0) {
+		printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
+		return false;
+	}
+	if(cfsetispeed(&tty, baudrate) != 0) {
+		printf("Error %i from setting baudrate: %s\n", errno, strerror(errno));
+		cerr << "... is the device a tty?" << endl;
+		return false;
+	}
+	if(cfsetospeed(&tty, baudrate) != 0) {
+		printf("Error %i from setting baudrate: %s\n", errno, strerror(errno));
+		return false;
+	}
+	// Save tty settings, also checking for error
+	if (tcsetattr(handle, TCSANOW, &tty) != 0) {
+		printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
+		return false;
+	}
+	return true;
+}
+
+void printUsage(const char* b) {
+	cout << "Usage: " << b << " path_to_file [--test num] [--baudrate num] [--help]" << endl;
+}
+
 int main(int argc, char* argv[]) {
 	int handle = -1;
+
+	// mandatory argument
 	if (argc > 1){
+		if(argv[1][0] == '-') {
+			// indicates some argument
+			printUsage(argv[0]);
+			return 0;
+		}
 		handle = open(argv[1], O_RDWR| O_NOCTTY);
-	}
-	if (handle < 0) {
-		cerr << "[Initiator] autsch: " << strerror(errno) << endl;
+	} else {
+		printUsage(argv[0]);
 		return -1;
 	}
+
+	if (handle < 0) {
+		cerr << "[Initiator] : " << argv[1] << " : " << strerror(errno) << endl;
+		return -1;
+	}
+
+	// optional arguments
+	if (argc > 2) {
+		for(unsigned i = 2; i < argc; i++) {
+			if(strcmp(argv[i], "--baudrate") == 0) {
+				if(argc <= i+1) {
+					cerr << "Baudrate needs an argument!" << endl;
+					printUsage(argv[0]);
+					return -1;
+				} else {
+					if(!setBaudrate(handle, atoi(argv[i+1]))) {
+						return -2;
+					}
+				}
+			} else if(strcmp(argv[i], "--help") == 0) {
+				printUsage(argv[0]);
+				return 0;
+			} else {
+				cerr << "Unknown argument " << argv[i] << endl;
+			}
+			// TODO: Different tests
+		}
+	}
+
 
 	Initiator initiator(handle);
 
