@@ -20,3 +20,20 @@ bool readStruct(int handle, hwitl::ResponseRead& pl) {
 	}
 	return ret;
 }
+
+template<>
+int writeStruct(int handle, hwitl::Request& pl) {
+	static_assert(sizeof(hwitl::Request::Command) == 1,
+			"Request::Command now also needs endianess correction");
+	pl.address = htonl(pl.address);
+	return write(handle, reinterpret_cast<char*>(&pl), sizeof(hwitl::Request));
+}
+
+template<>
+bool readStruct(int handle, hwitl::Request& pl) {
+	int ret = read(handle, reinterpret_cast<char*>(&pl), sizeof(hwitl::Request));
+	if(ret > 0){	// if successful
+		pl.address = ntohl(pl.address);
+	}
+	return ret;
+}

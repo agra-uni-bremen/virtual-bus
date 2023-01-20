@@ -24,3 +24,9 @@ int writeStruct(int handle, hwitl::ResponseRead& pl);
 
 template<>
 bool readStruct(int handle, hwitl::ResponseRead& pl);
+
+template<>
+int writeStruct(int handle, hwitl::Request& pl);
+
+template<>
+bool readStruct(int handle, hwitl::Request& pl);
