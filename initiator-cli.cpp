@@ -79,13 +79,9 @@ bool setBaudrate(int handle, unsigned baudrate) {
 		printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
 		return false;
 	}
-	if(cfsetispeed(&tty, baudrate) != 0) {
+	if(cfsetspeed(&tty, baudrate) != 0) {
 		printf("Error %i from setting baudrate: %s\n", errno, strerror(errno));
 		cerr << "... is the device a tty?" << endl;
-		return false;
-	}
-	if(cfsetospeed(&tty, baudrate) != 0) {
-		printf("Error %i from setting baudrate: %s\n", errno, strerror(errno));
 		return false;
 	}
 	// Save tty settings, also checking for error
@@ -133,6 +129,7 @@ int main(int argc, char* argv[]) {
 					if(!setBaudrate(handle, atoi(argv[i+1]))) {
 						return -2;
 					}
+					i++; // Argument consumed
 				}
 			} else if(strcmp(argv[i], "--help") == 0) {
 				printUsage(argv[0]);
