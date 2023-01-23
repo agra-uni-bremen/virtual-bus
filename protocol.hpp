@@ -26,13 +26,18 @@ struct __attribute__((packed)) Request {
 };
 
 struct __attribute__((packed)) ResponseStatus {
-	bool irq_waiting : 1;
+	/*
+	 * packed struct starts from LSB to MSB
+	 * Ack: bits 0 to 6
+	 * irq_waiting: bit 7
+	 */
 	enum class Ack : uint8_t {
 		never = 0,
 		ok = 1,
 		not_mapped,
 		command_not_supported
 	} ack : 7;
+	bool irq_waiting : 1;
 };
 
 struct ResponseRead {

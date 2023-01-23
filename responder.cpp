@@ -34,7 +34,7 @@ void Responder::listener() {
 		}
 		auto callback = getRegisteredCallback(req.address);
 		const bool is_mapped = isAddressRangeValid(callback.range);
-		ResponseStatus stat{irq_active, ResponseStatus::Ack::ok};
+		ResponseStatus stat{ResponseStatus::Ack::ok, irq_active};
 		switch(req.command) {
 		case Request::Command::read:
 		{
