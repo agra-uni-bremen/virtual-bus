@@ -7,10 +7,10 @@ using namespace hwitl;
 ResponseRead Initiator::read(Address address) {
 	Request req {Request::Command::read, address};
 	if(!writeStruct(m_handle, req))
-		cerr << "[Initiator read] Error transmitting request" << endl;
+		cerr << "[Initiator read] Error transmitting read request" << endl;
 	ResponseRead res{};
 	if(!readStruct(m_handle, res))
-		cerr << "[Initiator read] Error reading response" << endl;
+		cerr << "[Initiator read] Error reading read response" << endl;
 	if(res.status.ack == ResponseStatus::Ack::ok)
 		is_irq_waiting = res.status.irq_waiting;
 	return res;
@@ -18,7 +18,7 @@ ResponseRead Initiator::read(Address address) {
 ResponseStatus::Ack Initiator::write(Address address, Payload pl) {
 	Request req {Request::Command::write, address};
 	if(!writeStruct(m_handle, req))
-		cerr << "[Initiator write] Error transmitting request" << endl;
+		cerr << "[Initiator write] Error transmitting write request" << endl;
 	if(!writeStruct(m_handle, pl))
 		cerr << "[Initiator write] Error transmitting payload" << endl;
 	ResponseWrite res{};
@@ -32,10 +32,10 @@ ResponseStatus::Ack Initiator::write(Address address, Payload pl) {
 ResponseStatus::Ack Initiator::update() {
 	Request req {Request::Command::getIRQ, 0};
 	if(!writeStruct(m_handle, req))
-		cerr << "[Initiator read] Error transmitting request" << endl;
+		cerr << "[Initiator read] Error transmitting update request" << endl;
 	ResponseStatus res{};
 	if(!readStruct(m_handle, res))
-		cerr << "[Initiator read] Error reading response" << endl;
+		cerr << "[Initiator read] Error reading update response" << endl;
 	if(res.ack == ResponseStatus::Ack::ok)
 		is_irq_waiting = res.irq_waiting;
 	return res.ack;

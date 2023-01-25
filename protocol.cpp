@@ -37,3 +37,12 @@ bool readStruct(int handle, hwitl::Request& pl) {
 	}
 	return ret;
 }
+
+template<>
+int writeStruct(int handle, hwitl::Payload& pl) {
+	static_assert(sizeof(hwitl::Payload) == 4 && "Need different endian conversion function");
+	pl = htonl(pl);
+	return write(handle, reinterpret_cast<char*>(&pl), sizeof(hwitl::Payload));
+}
+
+

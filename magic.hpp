@@ -30,3 +30,6 @@ int writeStruct(int handle, hwitl::Request& pl);
 
 template<>
 bool readStruct(int handle, hwitl::Request& pl);
+
+template<>
+int writeStruct(int handle, hwitl::Payload& pl);
