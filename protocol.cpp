@@ -8,6 +8,7 @@ template<>
 int writeStruct(int handle, hwitl::ResponseRead& pl) {
 	static_assert(sizeof(hwitl::ResponseStatus) == 1,
 			"ResponseStatus now also needs endianess correction");
+	static_assert(sizeof(hwitl::Payload) == 4 && "Need different endian conversion function");
 	pl.payload = htonl(pl.payload);
 	return write(handle, reinterpret_cast<char*>(&pl), sizeof(hwitl::ResponseRead));
 }
@@ -16,15 +17,17 @@ template<>
 bool readStruct(int handle, hwitl::ResponseRead& pl) {
 	int ret = read(handle, reinterpret_cast<char*>(&pl), sizeof(hwitl::ResponseRead));
 	if(ret > 0){	// if successful
+		static_assert(sizeof(hwitl::Payload) == 4 && "Need different endian conversion function");
 		pl.payload = ntohl(pl.payload);
 	}
-	return ret;
+	return ret > 0;
 }
 
 template<>
 int writeStruct(int handle, hwitl::Request& pl) {
 	static_assert(sizeof(hwitl::Request::Command) == 1,
 			"Request::Command now also needs endianess correction");
+	static_assert(sizeof(hwitl::Address) == 4 && "Need different endian conversion function");
 	pl.address = htonl(pl.address);
 	return write(handle, reinterpret_cast<char*>(&pl), sizeof(hwitl::Request));
 }
@@ -35,7 +38,7 @@ bool readStruct(int handle, hwitl::Request& pl) {
 	if(ret > 0){	// if successful
 		pl.address = ntohl(pl.address);
 	}
-	return ret;
+	return ret > 0;
 }
 
 template<>
@@ -45,4 +48,13 @@ int writeStruct(int handle, hwitl::Payload& pl) {
 	return write(handle, reinterpret_cast<char*>(&pl), sizeof(hwitl::Payload));
 }
 
+template<>
+bool readStruct(int handle, hwitl::Payload& pl) {
+	int ret = read(handle, reinterpret_cast<char*>(&pl), sizeof(hwitl::Payload));
+	if(ret > 0){	// if successful
+		static_assert(sizeof(hwitl::Payload) == 4 && "Need different endian conversion function");
+		pl = ntohl(pl);
+	}
+	return ret > 0;
+}
 
