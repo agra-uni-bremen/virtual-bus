@@ -7,9 +7,9 @@ using namespace std;
 using namespace hwitl;
 
 Responder::CallbackEntry Responder::getRegisteredCallback(hwitl::Address target) {
-    //cout << hex << "Callback target: 0x" << target << endl;
+	//cout << hex << "Callback target: 0x" << target << endl;
 	for(const auto& entry : registeredRanges) {
-	    //cout << "from 0x" << hex << entry.range.from << " to 0x" << entry.range.to << dec << endl;
+		//cout << "from 0x" << hex << entry.range.from << " to 0x" << entry.range.to << dec << endl;
 		if(entry.range.from <= target && entry.range.to > target) {
 			return entry;
 		}
@@ -25,29 +25,30 @@ void Responder::addCallback(CallbackEntry callback) {
 	registeredRanges.emplace_front(callback);
 }
 void Responder::listener() {
-	cout << "listening" << endl;
+	cout << "[responder] listening" << endl;
 	while(m_handle) {
 		Request req;
 		if(!readStruct(m_handle, req)) {
 			cerr << "[responder] error reading request" << endl;
 			return;
 		}
-		auto callback = getRegisteredCallback(req.address);
+		const auto targetAddress = req.getAddressToHost();
+		auto callback = getRegisteredCallback(targetAddress);
 		const bool is_mapped = isAddressRangeValid(callback.range);
-		ResponseStatus stat{ResponseStatus::Ack::ok, irq_active};
-		switch(req.command) {
+		ResponseStatus stat(ResponseStatus::Ack::ok, irq_active);
+		switch(req.getCommand()) {
 		case Request::Command::read:
 		{
 			Payload payload = 0;
 			if(!is_mapped) {
-    			cerr << "Callback on address 0x" << hex << req.address << dec << " not mapped" << endl;
+				cerr << "Callback on address 0x" << hex << targetAddress << dec << " not mapped" << endl;
 				stat.ack = ResponseStatus::Ack::not_mapped;
 			} else {
 				if(!callback.read) {
-    				cerr << "Callback on address 0x" << hex << req.address << dec << " not readable" << endl;
+					cerr << "Callback on address 0x" << hex << targetAddress << dec << " not readable" << endl;
 					stat.ack = ResponseStatus::Ack::command_not_supported;
 				} else {
-					payload = callback.read(req.address);
+					payload = callback.read(targetAddress);
 				}
 			}
 			ResponseRead response{stat, payload};
@@ -63,14 +64,14 @@ void Responder::listener() {
 				cerr << "[responder] error reading payload" << strerror(errno) << endl;
 			}
 			if(!is_mapped) {
-    			cerr << "Callback on address 0x" << hex << req.address << dec << " not mapped" << endl;
+				cerr << "Callback on address 0x" << hex << targetAddress << dec << " not mapped" << endl;
 				stat.ack = ResponseStatus::Ack::not_mapped;
 			} else {
 				if(!callback.write) {
-					cerr << "Callback on address 0x" << hex << req.address << dec << " not writable" << endl;
+					cerr << "Callback on address 0x" << hex << targetAddress << dec << " not writable" << endl;
 					stat.ack = ResponseStatus::Ack::command_not_supported;
 				} else {
-					callback.write(req.address, payload);
+					callback.write(targetAddress, payload);
 				}
 			}
 			ResponseWrite response{stat};

@@ -1,7 +1,7 @@
 #pragma once
 #include "protocol.hpp"
-#include "magic.hpp"
 #include <fstream>
+#include "network_io.hpp"
 
 class Initiator {
 	int m_handle;

@@ -1,10 +1,10 @@
 #pragma once
 #include "protocol.hpp"
-#include "magic.hpp"
 #include <fstream>
 
 #include <functional>
 #include <list>
+#include "network_io.hpp"
 
 class Responder {
 public:

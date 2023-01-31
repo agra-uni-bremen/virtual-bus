@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-std=c++17 -g2 -Wall
 
-INCLUDES=protocol.hpp magic.hpp
+INCLUDES=network_io.hpp
 OBJECTS=protocol.o initiator.o responder.o
 EXES=initiator-cli responder-cli
 
@@ -16,11 +16,12 @@ all: $(EXES)
 	$(CC) $(CFLAGS) -pthread -o $@ $< $(OBJECTS)
 
 pipe_right pipe_left:
-	#mkfifo fifo
-	#socat -d -d  pipe:pipe_left pipe:pipe_right &
+	# If debug print data is desired:
+	# socat -v -x ...
 	socat -d -d pty,raw,echo=0,link=./pipe_left pty,raw,echo=0,link=./pipe_right &
 
 sim: $(EXES) pipe_right pipe_left
+	$(sleep 2)
 	./responder-cli pipe_right &
 	./initiator-cli pipe_left &
 
@@ -29,6 +30,7 @@ sim-stop:
 	killall responder-cli || true
 	killall initator-cli || true
 
-clean:
-	killall socat
+clean: sim-stop
 	rm $(EXES) $(OBJECTS)
+
+.PHONY: sim-stop sim clean

@@ -1,21 +1,42 @@
 #include "responder.hpp"
 #include <iostream>
+
 #include <fcntl.h>	// File control definitions
 #include <errno.h>	// errno
 #include <string.h>	// strerror
+#include <iomanip>	// setw and others
 #include <thread>
 
 using namespace std;
 using namespace hwitl;
 
+template<typename T>
+struct HexPrint {
+	HexPrint(T a) : a(a){};
+	T a;
+};
+
+template<typename T>
+std::ostream& operator<<( std::ostream& o, const HexPrint<T>& a ){
+	const auto flags = o.flags();
+	o << hex;
+	o << "0x";
+	o << setfill('.');
+	o << setw( sizeof(T) * 2);
+	o << uppercase;
+	o << a.a;
+	o.setf(flags);
+	return o;
+}
+
 Payload genericReadCallback(Address address) {
-	cout << "[responder-cli] [Callback] read 0x" << hex << address << dec << endl;
-	static char b = 'A';
+	cout << "[responder-cli] [Callback] read " << HexPrint{address} << endl;
+	static uint32_t b = 0;
 	return b++;
 }
 
 void genericWriteCallback(Address address, Payload payload) {
-	cout << "[responder-cli] [Callback] write 0x" << hex << address << " value " << payload << dec << endl;
+	cout << "[responder-cli] [Callback] write " << HexPrint{address}<< " value " << HexPrint{payload} << endl;
 }
 
 void generateInterrupts(Responder& responder){
@@ -35,7 +56,7 @@ int main(int argc, char* argv[]) {
 		handle = open(argv[1], O_RDWR| O_NOCTTY);
 	}
 	if (handle < 0) {
-		cerr << "autsch: " << strerror(errno) << endl;
+		cerr << "Handle could not be opened: " << strerror(errno) << endl;
 		return -1;
 	}
 

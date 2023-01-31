@@ -1,60 +1,32 @@
-// FIXME: Is this a nice place?
-// Rationale: "Protocol" because this defines network order on protocol
 #include "protocol.hpp"
-#include "magic.hpp"
-#include <arpa/inet.h>
+#include <arpa/inet.h>	// htonl
+#include "network_io.hpp"
 
-template<>
-int writeStruct(int handle, hwitl::ResponseRead& pl) {
-	static_assert(sizeof(hwitl::ResponseStatus) == 1,
-			"ResponseStatus now also needs endianess correction");
-	static_assert(sizeof(hwitl::Payload) == 4 && "Need different endian conversion function");
-	pl.payload = htonl(pl.payload);
-	return write(handle, reinterpret_cast<char*>(&pl), sizeof(hwitl::ResponseRead));
+
+hwitl::Request::Request(const Command cmd, const Address addr)
+		: command(cmd) {
+	static_assert(sizeof(Address) == 4 && "Need different endian conversion function");
+	address = htonl(addr);	// Here is the network order conversion
+};
+
+hwitl::Request::Command hwitl::Request::getCommand() const {
+	return command;
 }
 
-template<>
-bool readStruct(int handle, hwitl::ResponseRead& pl) {
-	int ret = read(handle, reinterpret_cast<char*>(&pl), sizeof(hwitl::ResponseRead));
-	if(ret > 0){	// if successful
-		static_assert(sizeof(hwitl::Payload) == 4 && "Need different endian conversion function");
-		pl.payload = ntohl(pl.payload);
-	}
-	return ret > 0;
+hwitl::Address hwitl::Request::getAddressToHost() const {
+	return ntohl(address);	// Network to Host conversion
 }
 
-template<>
-int writeStruct(int handle, hwitl::Request& pl) {
-	static_assert(sizeof(hwitl::Request::Command) == 1,
-			"Request::Command now also needs endianess correction");
-	static_assert(sizeof(hwitl::Address) == 4 && "Need different endian conversion function");
-	pl.address = htonl(pl.address);
-	return write(handle, reinterpret_cast<char*>(&pl), sizeof(hwitl::Request));
-}
+hwitl::RequestRead::RequestRead(const Address addr) : request(Request::Command::read, addr){};
 
-template<>
-bool readStruct(int handle, hwitl::Request& pl) {
-	int ret = read(handle, reinterpret_cast<char*>(&pl), sizeof(hwitl::Request));
-	if(ret > 0){	// if successful
-		pl.address = ntohl(pl.address);
-	}
-	return ret > 0;
-}
+hwitl::RequestWrite::RequestWrite(const Address addr, const Payload pl)
+		: request(Request::Command::write, addr) {
+	payload = pl;	// No network order conversion
+};
 
-template<>
-int writeStruct(int handle, hwitl::Payload& pl) {
-	static_assert(sizeof(hwitl::Payload) == 4 && "Need different endian conversion function");
-	pl = htonl(pl);
-	return write(handle, reinterpret_cast<char*>(&pl), sizeof(hwitl::Payload));
-}
+hwitl::RequestIRQ::RequestIRQ()
+		: request(Request::Command::getIRQ, 0){};	// Zero Address, others reserved for future use
 
-template<>
-bool readStruct(int handle, hwitl::Payload& pl) {
-	int ret = read(handle, reinterpret_cast<char*>(&pl), sizeof(hwitl::Payload));
-	if(ret > 0){	// if successful
-		static_assert(sizeof(hwitl::Payload) == 4 && "Need different endian conversion function");
-		pl = ntohl(pl);
-	}
-	return ret > 0;
-}
 
+hwitl::ResponseStatus::ResponseStatus(const Ack status, const bool is_irq_waiting)
+		: ack(status), irq_waiting(is_irq_waiting){};

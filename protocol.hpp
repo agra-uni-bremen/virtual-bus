@@ -21,8 +21,39 @@ struct __attribute__((packed)) Request {
 		getIRQ,
 		setTime,
 		exit
-	} command;
-	Address address;
+	};
+private:
+	Command command;
+	static_assert(sizeof(Command) == 1, "command now also needs endianess conversion");
+	Address address;	// this should always be network order
+public:
+
+	Request() = default;
+	Request(const Command cmd, const Address addr);
+	Command getCommand() const;
+	Address getAddressToHost() const;	// helper function for responder
+};
+static_assert(sizeof(Request) == sizeof(Request::Command) + sizeof(Address));
+
+struct RequestRead {
+	Request request;
+
+	RequestRead(const Address addr);
+};
+static_assert(sizeof(RequestRead) == sizeof(Request));
+
+struct __attribute__((packed)) RequestWrite {	// packed need inherited from request
+	Request request;
+	Payload payload;	// Kept "native" as this is guest-dependent
+
+	RequestWrite(const Address addr, const Payload pl);
+};
+static_assert(sizeof(RequestWrite) == sizeof(Request) + sizeof(Payload));
+
+struct RequestIRQ {
+	Request request;
+
+	RequestIRQ();
 };
 
 struct __attribute__((packed)) ResponseStatus {
@@ -38,15 +69,21 @@ struct __attribute__((packed)) ResponseStatus {
 		command_not_supported
 	} ack : 7;
 	bool irq_waiting : 1;
-};
 
-struct ResponseRead {
+	ResponseStatus() =  default;
+	ResponseStatus(const Ack status, const bool is_irq_waiting);
+};
+static_assert(sizeof(ResponseStatus) == 1);
+
+struct __attribute__((packed)) ResponseRead {	// packed need inherited from ResponseStatus
 	ResponseStatus status;
 	Payload payload;
 };
+static_assert(sizeof(ResponseRead) == sizeof(ResponseStatus) + sizeof(Payload));
 
 struct ResponseWrite {
 	ResponseStatus status;
 };
+static_assert(sizeof(ResponseWrite) == sizeof(ResponseStatus));
 
 }

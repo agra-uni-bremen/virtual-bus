@@ -5,35 +5,45 @@ using namespace std;
 using namespace hwitl;
 
 ResponseRead Initiator::read(Address address) {
-	Request req {Request::Command::read, address};
-	if(!writeStruct(m_handle, req))
+	RequestRead req (address);
+	ResponseRead res;
+	if(!writeStruct(m_handle, req)) {
 		cerr << "[Initiator read] Error transmitting read request" << endl;
-	ResponseRead res{};
-	if(!readStruct(m_handle, res))
+		res.status.ack = ResponseStatus::Ack::never;
+		return res;
+	}
+
+	if(!readStruct(m_handle, res)) {
 		cerr << "[Initiator read] Error reading read response" << endl;
+		res.status.ack = ResponseStatus::Ack::never;
+		return res;
+	}
+
 	if(res.status.ack == ResponseStatus::Ack::ok)
 		is_irq_waiting = res.status.irq_waiting;
 	return res;
 }
 ResponseStatus::Ack Initiator::write(Address address, Payload pl) {
-	Request req {Request::Command::write, address};
-	if(!writeStruct(m_handle, req))
+	RequestWrite req(address, pl);
+	if(!writeStruct(m_handle, req)) {
 		cerr << "[Initiator write] Error transmitting write request" << endl;
-	if(!writeStruct(m_handle, pl))
-		cerr << "[Initiator write] Error transmitting payload" << endl;
-	ResponseWrite res{};
-	if(!readStruct(m_handle, res))
+		return ResponseStatus::Ack::never;
+	}
+	ResponseWrite res;
+	if(!readStruct(m_handle, res)) {
 		cerr << "[Initiator write] Error reading response" << endl;
+		return ResponseStatus::Ack::never;
+	}
 	if(res.status.ack == ResponseStatus::Ack::ok)
 		is_irq_waiting = res.status.irq_waiting;
 	return res.status.ack;
 }
 
 ResponseStatus::Ack Initiator::update() {
-	Request req {Request::Command::getIRQ, 0};
+	RequestIRQ req;
 	if(!writeStruct(m_handle, req))
 		cerr << "[Initiator read] Error transmitting update request" << endl;
-	ResponseStatus res{};
+	ResponseStatus res;
 	if(!readStruct(m_handle, res))
 		cerr << "[Initiator read] Error reading update response" << endl;
 	if(res.ack == ResponseStatus::Ack::ok)
