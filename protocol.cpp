@@ -8,6 +8,9 @@ hwitl::Request::Request(const Command command, const Address address)
 	static_assert(sizeof(Address) == 4 && "Need different endian conversion function");
 	m_address = htonl(address);
 };
+hwitl::Request hwitl::Request::fromNetworkOrder(const Command raw_command, const Address raw_address) {
+	return Request{raw_command, raw_address};
+};
 
 hwitl::Request::Command hwitl::Request::getCommand() const {
 	return m_command;
@@ -21,19 +24,15 @@ hwitl::Address hwitl::Request::getAddressToHost() const {
 hwitl::RequestRead::RequestRead(const Address addr)
 		: request(Request::Command::read, addr){};
 
-hwitl::RequestWrite::RequestWrite(const Address addr, const Payload pl)
-		: request(Request::Command::write, addr) {
-	static_assert(sizeof(Payload) == 4 && "Need different endian conversion function");
-	payload = htonl(pl);
+hwitl::RequestWrite::RequestWrite(const Address network_addr, const Payload network_payload) {
+	request = Request::fromNetworkOrder(Request::Command::read, network_addr);
+	payload = network_payload;
 };
 
-hwitl::Payload hwitl::RequestWrite::fromNetwork(const Payload pl) {
+hwitl::Payload hwitl::RequestWrite::getPayload() const{
 	static_assert(sizeof(Payload) == 4 && "Need different endian conversion function");
-	return ntohl(pl);
+	return ntohl(payload);
 }
-
-hwitl::RequestIRQ::RequestIRQ()
-		: request(Request::Command::getIRQ, 0){};	// Zero Address, others reserved for future use
 
 hwitl::ResponseStatus::ResponseStatus(const Ack status, const bool is_irq_waiting)
 		: ack(status), irq_waiting(is_irq_waiting){};

@@ -27,18 +27,36 @@ void Responder::addCallback(CallbackEntry callback) {
 void Responder::listener() {
 	cout << "[responder] listening" << endl;
 	while(m_handle) {
-		Request request;
-		if(!readStruct(m_handle, request)) {
+		Request::Command command;
+		if(!readStruct(m_handle, command)) {
 			cerr << "[responder] error reading request" << endl;
 			return;
 		}
-		const auto targetAddress = request.getAddressToHost();
-		auto callback = getRegisteredCallback(targetAddress);
-		const bool is_mapped = isAddressRangeValid(callback.range);
 		ResponseStatus stat(ResponseStatus::Ack::ok, irq_active);
-		switch(request.getCommand()) {
+		switch(command) {
+		case Request::Command::reset:
+			// No response!
+			break;
+		case Request::Command::getIRQ:
+			if(!writeStruct(m_handle, stat)) {
+				cerr << "[responder] error writing keepalive" << strerror(errno) << endl;
+			}
+			break;
+		case Request::Command::exit:
+			cerr << "graceful exit" << endl;
+			return;
 		case Request::Command::read:
 		{
+			Address raw_addr;
+			if(!readStruct(m_handle, raw_addr)) {
+				cerr << "[responder] error reading read request" << strerror(errno) << endl;
+				return;
+			}
+			RequestRead read(raw_addr); // Ugly
+			const auto targetAddress = read.request.getAddressToHost();
+			auto callback = getRegisteredCallback(targetAddress);
+			const bool is_mapped = isAddressRangeValid(callback.range);
+
 			Payload payload = 0;
 			if(!is_mapped) {
 				cerr << "Callback on address 0x" << hex << targetAddress << dec << " not mapped" << endl;
@@ -59,11 +77,22 @@ void Responder::listener() {
 		break;
 		case Request::Command::write:
 		{
-			Payload rawPayload;
-			if(!readStruct(m_handle, rawPayload)){
-				cerr << "[responder] error reading payload" << strerror(errno) << endl;
+			Address raw_addr;
+			if(!readStruct(m_handle, raw_addr)) {
+				cerr << "[responder] error reading write request" << strerror(errno) << endl;
 				return;
 			}
+			Payload raw_payload;
+			if(!readStruct(m_handle, raw_payload)){
+				cerr << "[responder] error reading write payload" << strerror(errno) << endl;
+				return;
+			}
+			RequestWrite write(raw_addr, raw_payload);
+			const auto targetAddress = write.request.getAddressToHost();
+			auto callback = getRegisteredCallback(targetAddress);
+			const bool is_mapped = isAddressRangeValid(callback.range);
+			ResponseStatus stat(ResponseStatus::Ack::ok, irq_active);
+
 			if(!is_mapped) {
 				cerr << "Callback on address 0x" << hex << targetAddress << dec << " not mapped" << endl;
 				stat.ack = ResponseStatus::Ack::not_mapped;
@@ -72,7 +101,7 @@ void Responder::listener() {
 					cerr << "Callback on address 0x" << hex << targetAddress << dec << " not writable" << endl;
 					stat.ack = ResponseStatus::Ack::command_not_supported;
 				} else {
-					callback.write(targetAddress, RequestWrite::fromNetwork(rawPayload));
+					callback.write(targetAddress, write.getPayload());
 				}
 			}
 			ResponseWrite response{stat};
@@ -81,14 +110,6 @@ void Responder::listener() {
 			}
 		}
 		break;
-		case Request::Command::getIRQ:
-			if(!writeStruct(m_handle, stat)) {
-				cerr << "[responder] error writing keepalive" << strerror(errno) << endl;
-			}
-			break;
-		case Request::Command::exit:
-			cerr << "graceful exit" << endl;
-			return;
 		default:
 		{
 			stat.ack = ResponseStatus::Ack::command_not_supported;

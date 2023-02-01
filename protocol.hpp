@@ -30,6 +30,7 @@ public:
 
 	Request() = default;
 	Request(const Command command, const Address address);
+	static Request fromNetworkOrder(const Command raw_command, const Address raw_address);
 	Command getCommand() const;
 	Address getAddressToHost() const;	// helper function for responder
 };
@@ -48,16 +49,10 @@ struct __attribute__((packed)) RequestWrite {	// packed need inherited from requ
 	Payload payload;							// Always network order
 
 	RequestWrite() = default;
-	RequestWrite(const Address addr, const Payload pl);
-	static Payload fromNetwork(const Payload pl);
+	RequestWrite(const Address network_addr, const Payload network_payload);
+	Payload getPayload() const;
 };
 static_assert(sizeof(RequestWrite) == sizeof(Request) + sizeof(Payload));
-
-struct RequestIRQ {
-	Request request;
-
-	RequestIRQ();
-};
 
 struct __attribute__((packed)) ResponseStatus {
 	/*

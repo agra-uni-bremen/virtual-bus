@@ -17,3 +17,5 @@ template<typename T>
 bool readStruct(int handle, T& pl) {
 	return read(handle, reinterpret_cast<char*>(&pl), sizeof(T)) == sizeof(T);
 }
+
+bool clearInputBuffer(int handle);

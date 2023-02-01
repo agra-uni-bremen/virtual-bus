@@ -4,6 +4,17 @@
 using namespace std;
 using namespace hwitl;
 
+Initiator::Initiator(int& handle) : m_handle(handle), is_irq_waiting(false) {
+	//if(!clearInputBuffer(m_handle))
+	//	throw std::runtime_error("[Initiator read] Could not clear input buffer");
+
+	auto command = Request::Command::reset;
+	if(!writeStruct(m_handle, command)) {
+		throw std::runtime_error("[Initiator read] Error transmitting initial reset request");
+	}
+	// no response expected
+};
+
 std::optional<ResponseRead> Initiator::read(Address address) {
 	RequestRead req (address);
 	if(!writeStruct(m_handle, req)) {
@@ -38,12 +49,12 @@ ResponseStatus::Ack Initiator::write(Address address, Payload pl) {
 }
 
 ResponseStatus::Ack Initiator::update() {
-	RequestIRQ req;
+	auto req = Request::Command::getIRQ;
 	if(!writeStruct(m_handle, req))
-		cerr << "[Initiator read] Error transmitting update request" << endl;
+		throw std::runtime_error("[Initiator read] Error transmitting update request");
 	ResponseStatus res;
 	if(!readStruct(m_handle, res))
-		cerr << "[Initiator read] Error reading update response" << endl;
+		throw std::runtime_error("[Initiator read] Error reading update response");
 	if(res.ack == ResponseStatus::Ack::ok)
 		is_irq_waiting = res.irq_waiting;
 	return res.ack;
