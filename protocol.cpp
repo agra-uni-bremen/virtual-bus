@@ -27,6 +27,11 @@ hwitl::RequestWrite::RequestWrite(const Address addr, const Payload pl)
 	payload = htonl(pl);
 };
 
+hwitl::Payload hwitl::RequestWrite::fromNetwork(const Payload pl) {
+	static_assert(sizeof(Payload) == 4 && "Need different endian conversion function");
+	return ntohl(pl);;
+}
+
 hwitl::RequestIRQ::RequestIRQ()
 		: request(Request::Command::getIRQ, 0){};	// Zero Address, others reserved for future use
 

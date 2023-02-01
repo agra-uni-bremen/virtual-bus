@@ -38,15 +38,18 @@ static_assert(sizeof(Request) == sizeof(Request::Command) + sizeof(Address));
 struct RequestRead {
 	Request request;
 
+	RequestRead() = default;
 	RequestRead(const Address addr);
 };
 static_assert(sizeof(RequestRead) == sizeof(Request));
 
 struct __attribute__((packed)) RequestWrite {	// packed need inherited from request
 	Request request;
-	Payload payload;	// Kept "native" as this is guest-dependent
+	Payload payload;							// Always network order
 
+	RequestWrite() = default;
 	RequestWrite(const Address addr, const Payload pl);
+	static Payload fromNetwork(const Payload pl);
 };
 static_assert(sizeof(RequestWrite) == sizeof(Request) + sizeof(Payload));
 

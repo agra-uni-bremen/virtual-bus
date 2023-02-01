@@ -27,16 +27,16 @@ void Responder::addCallback(CallbackEntry callback) {
 void Responder::listener() {
 	cout << "[responder] listening" << endl;
 	while(m_handle) {
-		Request req;
-		if(!readStruct(m_handle, req)) {
+		Request request;
+		if(!readStruct(m_handle, request)) {
 			cerr << "[responder] error reading request" << endl;
 			return;
 		}
-		const auto targetAddress = req.getAddressToHost();
+		const auto targetAddress = request.getAddressToHost();
 		auto callback = getRegisteredCallback(targetAddress);
 		const bool is_mapped = isAddressRangeValid(callback.range);
 		ResponseStatus stat(ResponseStatus::Ack::ok, irq_active);
-		switch(req.getCommand()) {
+		switch(request.getCommand()) {
 		case Request::Command::read:
 		{
 			Payload payload = 0;
@@ -59,9 +59,10 @@ void Responder::listener() {
 		break;
 		case Request::Command::write:
 		{
-			Payload payload;
-			if(!readStruct(m_handle, payload)){
+			Payload rawPayload;
+			if(!readStruct(m_handle, rawPayload)){
 				cerr << "[responder] error reading payload" << strerror(errno) << endl;
+				return;
 			}
 			if(!is_mapped) {
 				cerr << "Callback on address 0x" << hex << targetAddress << dec << " not mapped" << endl;
@@ -71,7 +72,7 @@ void Responder::listener() {
 					cerr << "Callback on address 0x" << hex << targetAddress << dec << " not writable" << endl;
 					stat.ack = ResponseStatus::Ack::command_not_supported;
 				} else {
-					callback.write(targetAddress, payload);
+					callback.write(targetAddress, RequestWrite::fromNetwork(rawPayload));
 				}
 			}
 			ResponseWrite response{stat};
