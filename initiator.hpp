@@ -1,7 +1,8 @@
 #pragma once
 #include "protocol.hpp"
-#include <fstream>
 #include "network_io.hpp"
+#include <fstream>
+#include <optional>
 
 class Initiator {
 	int m_handle;
@@ -9,7 +10,7 @@ class Initiator {
 public:
 	Initiator(int& handle) : m_handle(handle), is_irq_waiting(false){};
 
-	hwitl::ResponseRead read(hwitl::Address pl);
+	std::optional<hwitl::ResponseRead> read(hwitl::Address pl);
 	hwitl::ResponseStatus::Ack write(hwitl::Address address, hwitl::Payload pl);
 	hwitl::ResponseStatus::Ack update();
 	bool getInterrupt();

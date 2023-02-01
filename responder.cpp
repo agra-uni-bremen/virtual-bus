@@ -51,7 +51,7 @@ void Responder::listener() {
 					payload = callback.read(targetAddress);
 				}
 			}
-			ResponseRead response{stat, payload};
+			ResponseRead response(stat, payload);
 			if(!writeStruct(m_handle, response)) {
 				cerr << "[responder] error writing response read" << strerror(errno) << endl;
 			}

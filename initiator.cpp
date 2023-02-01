@@ -4,24 +4,22 @@
 using namespace std;
 using namespace hwitl;
 
-ResponseRead Initiator::read(Address address) {
+std::optional<ResponseRead> Initiator::read(Address address) {
 	RequestRead req (address);
-	ResponseRead res;
 	if(!writeStruct(m_handle, req)) {
 		cerr << "[Initiator read] Error transmitting read request" << endl;
-		res.status.ack = ResponseStatus::Ack::never;
-		return res;
+		return std::nullopt;
 	}
 
-	if(!readStruct(m_handle, res)) {
+	ResponseRead ret;
+	if(!readStruct(m_handle, ret)) {
 		cerr << "[Initiator read] Error reading read response" << endl;
-		res.status.ack = ResponseStatus::Ack::never;
-		return res;
+		return std::nullopt;
 	}
 
-	if(res.status.ack == ResponseStatus::Ack::ok)
-		is_irq_waiting = res.status.irq_waiting;
-	return res;
+	if(ret.getStatus().ack == ResponseStatus::Ack::ok)
+		is_irq_waiting = ret.getStatus().irq_waiting;
+	return ret;
 }
 ResponseStatus::Ack Initiator::write(Address address, Payload pl) {
 	RequestWrite req(address, pl);

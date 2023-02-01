@@ -23,13 +23,13 @@ struct __attribute__((packed)) Request {
 		exit
 	};
 private:
-	Command command;
+	Command m_command;
 	static_assert(sizeof(Command) == 1, "command now also needs endianess conversion");
-	Address address;	// this should always be network order
+	Address m_address;	// this should always be network order
 public:
 
 	Request() = default;
-	Request(const Command cmd, const Address addr);
+	Request(const Command command, const Address address);
 	Command getCommand() const;
 	Address getAddressToHost() const;	// helper function for responder
 };
@@ -76,8 +76,14 @@ struct __attribute__((packed)) ResponseStatus {
 static_assert(sizeof(ResponseStatus) == 1);
 
 struct __attribute__((packed)) ResponseRead {	// packed need inherited from ResponseStatus
-	ResponseStatus status;
-	Payload payload;
+private:
+	ResponseStatus m_status;
+	Payload m_payload;
+public:
+	ResponseRead() = default;
+	ResponseRead(const ResponseStatus status, const Payload payload);
+	ResponseStatus getStatus() const;
+	Payload getPayload() const;
 };
 static_assert(sizeof(ResponseRead) == sizeof(ResponseStatus) + sizeof(Payload));
 

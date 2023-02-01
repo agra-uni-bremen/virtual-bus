@@ -40,12 +40,16 @@ void readWriteAtZero(Initiator& remote) {
 		return;
 	}
 	cout << "[Initiator-cli] read " << HexPrint{address} << " ";
-	auto ret = remote.read(address);
-	if(ret.status.ack != ResponseStatus::Ack::ok) {
-		cerr << "[Initiator-cli] Nak on read: "  << static_cast<unsigned>(ret.status.ack) << endl;
+	const auto ret = remote.read(address);
+	if(!ret) {
+		cerr << "[Initiator-cli] Could not read from remote" << endl;
 		return;
 	}
-	cout << "[Initiator-cli] value " << HexPrint{ret.payload} << endl;
+	if(ret->getStatus().ack != ResponseStatus::Ack::ok) {
+		cerr << "[Initiator-cli] Nak on read: "  << static_cast<unsigned>(ret->getStatus().ack) << endl;
+		return;
+	}
+	cout << "[Initiator-cli] value " << HexPrint{ret->getPayload()} << endl;
 	if(remote.getInterrupt())
 		cout << "[Initiator-cli] Interrupt was triggered" << endl;
 	sleep(1);
@@ -61,15 +65,20 @@ void sweepAddressRoom(Initiator& remote) {
 			cout << "[Initiator-cli] Scanning " << HexPrint{address} << " - " << HexPrint{(address + printStep)} << " ..." << endl;
 		}
 		auto ret = remote.read(address);
-		if(ret.status.ack == ResponseStatus::Ack::not_mapped) {
+		if(!ret) {
+			cerr << "[Initiator-cli] Could not read from remote" << endl;
+			return;
+		}
+		const auto status = ret->getStatus().ack;
+		if(status == ResponseStatus::Ack::not_mapped) {
 			// nothing
-		} else if(ret.status.ack == ResponseStatus::Ack::ok) {
-			cout << "[Initiator-cli] \t" << "Found Register at " << HexPrint{address} << " : " << HexPrint{ret.payload} << endl;
+		} else if(status == ResponseStatus::Ack::ok) {
+			cout << "[Initiator-cli] \t" << "Found Register at " << HexPrint{address} << " : " << HexPrint{ret->getPayload()} << endl;
 			if(remote.write(address, payload) == ResponseStatus::Ack::ok) {
 				cout << "[Initiator-cli] \t" << "Wrote " << HexPrint{payload} << " successfully." << endl;
 			}
 		} else {
-			cout << "[Initiator-cli] Other error at " << HexPrint{address} << ": [" << static_cast<int>(ret.status.ack) << "]" << endl;
+			cout << "[Initiator-cli] Other error at " << HexPrint{address} << ": [" << static_cast<int>(status) << "]" << endl;
 		}
 	}
 }
