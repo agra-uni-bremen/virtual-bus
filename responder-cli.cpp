@@ -30,8 +30,8 @@ std::ostream& operator<<( std::ostream& o, const HexPrint<T>& a ){
 }
 
 Payload genericReadCallback(Address address) {
-	cout << "[responder-cli] [Callback] read " << HexPrint{address} << endl;
 	static uint32_t b = 0;
+	cout << "[responder-cli] [Callback] read " << HexPrint{address} << ": " << HexPrint{b} << endl;
 	return b++;
 }
 

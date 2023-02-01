@@ -29,7 +29,7 @@ hwitl::RequestWrite::RequestWrite(const Address addr, const Payload pl)
 
 hwitl::Payload hwitl::RequestWrite::fromNetwork(const Payload pl) {
 	static_assert(sizeof(Payload) == 4 && "Need different endian conversion function");
-	return ntohl(pl);;
+	return ntohl(pl);
 }
 
 hwitl::RequestIRQ::RequestIRQ()
@@ -40,7 +40,7 @@ hwitl::ResponseStatus::ResponseStatus(const Ack status, const bool is_irq_waitin
 
 hwitl::ResponseRead::ResponseRead(const ResponseStatus status, const Payload payload)
 		: m_status(status){
-	m_payload = ntohl(payload);
+	m_payload = htonl(payload);
 }
 
 hwitl::ResponseStatus hwitl::ResponseRead::getStatus() const {
@@ -48,6 +48,6 @@ hwitl::ResponseStatus hwitl::ResponseRead::getStatus() const {
 }
 
 hwitl::Payload hwitl::ResponseRead::getPayload() const {
-	return m_payload;
+	return ntohl(m_payload);
 }
 
