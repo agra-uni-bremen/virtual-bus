@@ -27,6 +27,7 @@ void Responder::addCallback(CallbackEntry callback) {
 void Responder::listener() {
 	cout << "[responder] listening" << endl;
 	while(m_handle) {
+		static_assert(sizeof(Request::Command) == 1);
 		Request::Command command;
 		if(!readStruct(m_handle, command)) {
 			cerr << "[responder] error reading request" << endl;
@@ -52,7 +53,7 @@ void Responder::listener() {
 				cerr << "[responder] error reading read request" << strerror(errno) << endl;
 				return;
 			}
-			RequestRead read(raw_addr); // Ugly
+			const auto read = RequestRead::fromNetwork(raw_addr);
 			const auto targetAddress = read.request.getAddressToHost();
 			auto callback = getRegisteredCallback(targetAddress);
 			const bool is_mapped = isAddressRangeValid(callback.range);

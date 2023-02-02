@@ -8,8 +8,11 @@ hwitl::Request::Request(const Command command, const Address address)
 	static_assert(sizeof(Address) == 4 && "Need different endian conversion function");
 	m_address = htonl(address);
 };
-hwitl::Request hwitl::Request::fromNetworkOrder(const Command raw_command, const Address raw_address) {
-	return Request{raw_command, raw_address};
+hwitl::Request hwitl::Request::fromNetwork(const Command raw_command, const Address raw_address) {
+	Request ret;
+	ret.m_command = raw_command;
+	ret.m_address = raw_address;
+	return ret;
 };
 
 hwitl::Request::Command hwitl::Request::getCommand() const {
@@ -24,6 +27,12 @@ hwitl::Address hwitl::Request::getAddressToHost() const {
 hwitl::RequestRead::RequestRead(const Address addr)
 		: request(Request::Command::read, addr){};
 
+hwitl::RequestRead hwitl::RequestRead::fromNetwork(const Address network_addr) {
+	RequestRead ret;
+	ret.request = Request::fromNetwork(Request::Command::read, network_addr);
+	return ret;
+}
+
 hwitl::RequestWrite::RequestWrite(const Address addr, const Payload payload)
 		: m_request(Request::Command::write, addr) {
 	static_assert(sizeof(Payload) == 4 && "Need different endian conversion function");
@@ -32,7 +41,7 @@ hwitl::RequestWrite::RequestWrite(const Address addr, const Payload payload)
 
 hwitl::RequestWrite hwitl::RequestWrite::fromNetwork(const Address network_addr, const Payload network_payload) {
 	RequestWrite req;
-	req.m_request = Request::fromNetworkOrder(Request::Command::write, network_addr);
+	req.m_request = Request::fromNetwork(Request::Command::write, network_addr);
 	req.m_payload = network_payload;
 	return req;
 };

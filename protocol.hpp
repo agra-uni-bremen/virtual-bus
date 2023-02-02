@@ -30,7 +30,7 @@ public:
 
 	Request() = default;
 	Request(const Command command, const Address address);
-	static Request fromNetworkOrder(const Command raw_command, const Address raw_address);
+	static Request fromNetwork(const Command raw_command, const Address raw_address);
 	Command getCommand() const;
 	Address getAddressToHost() const;	// helper function for responder
 };
@@ -41,6 +41,7 @@ struct RequestRead {
 
 	RequestRead() = default;
 	RequestRead(const Address addr);
+	static RequestRead fromNetwork(const Address network_addr);
 };
 static_assert(sizeof(RequestRead) == sizeof(Request));
 
