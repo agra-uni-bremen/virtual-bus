@@ -87,8 +87,8 @@ void Responder::listener() {
 				cerr << "[responder] error reading write payload" << strerror(errno) << endl;
 				return;
 			}
-			RequestWrite write(raw_addr, raw_payload);
-			const auto targetAddress = write.request.getAddressToHost();
+			const auto write = RequestWrite::fromNetwork(raw_addr, raw_payload);
+			const auto targetAddress = write.m_request.getAddressToHost();
 			auto callback = getRegisteredCallback(targetAddress);
 			const bool is_mapped = isAddressRangeValid(callback.range);
 			ResponseStatus stat(ResponseStatus::Ack::ok, irq_active);

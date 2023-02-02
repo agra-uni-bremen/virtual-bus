@@ -45,11 +45,12 @@ struct RequestRead {
 static_assert(sizeof(RequestRead) == sizeof(Request));
 
 struct __attribute__((packed)) RequestWrite {	// packed need inherited from request
-	Request request;
-	Payload payload;							// Always network order
+	Request m_request;
+	Payload m_payload;							// Always network order
 
 	RequestWrite() = default;
-	RequestWrite(const Address network_addr, const Payload network_payload);
+	RequestWrite(const Address addr, const Payload payload);
+	static RequestWrite fromNetwork(const Address network_addr, const Payload network_payload);
 	Payload getPayload() const;
 };
 static_assert(sizeof(RequestWrite) == sizeof(Request) + sizeof(Payload));

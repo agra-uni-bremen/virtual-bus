@@ -1,5 +1,6 @@
-#include <iostream>
 #include "initiator.hpp"
+#include <iostream>
+#include <string.h> // strerror
 
 using namespace std;
 using namespace hwitl;
@@ -24,7 +25,8 @@ std::optional<ResponseRead> Initiator::read(Address address) {
 
 	ResponseRead ret;
 	if(!readStruct(m_handle, ret)) {
-		cerr << "[Initiator read] Error reading read response" << endl;
+		cerr << "[Initiator read] Error reading read response:";
+		cerr << strerror(errno) << endl;
 		return std::nullopt;
 	}
 

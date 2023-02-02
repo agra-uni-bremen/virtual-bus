@@ -24,14 +24,22 @@ hwitl::Address hwitl::Request::getAddressToHost() const {
 hwitl::RequestRead::RequestRead(const Address addr)
 		: request(Request::Command::read, addr){};
 
-hwitl::RequestWrite::RequestWrite(const Address network_addr, const Payload network_payload) {
-	request = Request::fromNetworkOrder(Request::Command::read, network_addr);
-	payload = network_payload;
+hwitl::RequestWrite::RequestWrite(const Address addr, const Payload payload)
+		: m_request(Request::Command::write, addr) {
+	static_assert(sizeof(Payload) == 4 && "Need different endian conversion function");
+	m_payload = ntohl(payload);
+};
+
+hwitl::RequestWrite hwitl::RequestWrite::fromNetwork(const Address network_addr, const Payload network_payload) {
+	RequestWrite req;
+	req.m_request = Request::fromNetworkOrder(Request::Command::write, network_addr);
+	req.m_payload = network_payload;
+	return req;
 };
 
 hwitl::Payload hwitl::RequestWrite::getPayload() const{
 	static_assert(sizeof(Payload) == 4 && "Need different endian conversion function");
-	return ntohl(payload);
+	return ntohl(m_payload);
 }
 
 hwitl::ResponseStatus::ResponseStatus(const Ack status, const bool is_irq_waiting)

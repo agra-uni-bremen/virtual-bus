@@ -1,11 +1,8 @@
 #include "initiator.hpp"
 #include <iostream>
-
 #include <fcntl.h>	// File control definitions
-#include <errno.h>	// errno
 #include <string.h>	// strerror
 #include <iomanip>	// setw()
-#include <termios.h> // Contains POSIX terminal control definitions (setbaudrate)
 
 using namespace std;
 using namespace hwitl;
@@ -52,12 +49,11 @@ void readWriteAtZero(Initiator& remote) {
 	cout << "[Initiator-cli] value " << HexPrint{ret->getPayload()} << endl;
 	if(remote.getInterrupt())
 		cout << "[Initiator-cli] Interrupt was triggered" << endl;
-	sleep(1);
 }
 
 void sweepAddressRoom(Initiator& remote) {
-	constexpr Address startAddr = 0x00000000;
-	constexpr Address   endAddr = 0x0000FFFF;
+	constexpr Address startAddr = 0x50000000;
+	constexpr Address   endAddr = 0x50002FFF;
 	constexpr Payload payload   = 0x8BADF00D;
 	constexpr Address printStep = 0x00001000;
 	for(Address address = startAddr; address <= endAddr; address += sizeof(Payload)) {
@@ -75,31 +71,12 @@ void sweepAddressRoom(Initiator& remote) {
 		} else if(status == ResponseStatus::Ack::ok) {
 			cout << "[Initiator-cli] \t" << "Found Register at " << HexPrint{address} << " : " << HexPrint{ret->getPayload()} << endl;
 			if(remote.write(address, payload) == ResponseStatus::Ack::ok) {
-				cout << "[Initiator-cli] \t" << "Wrote " << HexPrint{payload} << " successfully." << endl;
+				cout << "[Initiator-cli] \t\t" << "Register Writable: " << HexPrint{payload} << endl;
 			}
 		} else {
 			cout << "[Initiator-cli] Other error at " << HexPrint{address} << ": [" << static_cast<int>(status) << "]" << endl;
 		}
 	}
-}
-
-bool setBaudrate(int handle, unsigned baudrate) {
-	struct termios tty;
-	if(tcgetattr(handle, &tty) != 0) {
-		printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
-		return false;
-	}
-	if(cfsetspeed(&tty, baudrate) != 0) {
-		printf("Error %i from setting baudrate: %s\n", errno, strerror(errno));
-		cerr << "... is the device a tty?" << endl;
-		return false;
-	}
-	// Save tty settings, also checking for error
-	if (tcsetattr(handle, TCSANOW, &tty) != 0) {
-		printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
-		return false;
-	}
-	return true;
 }
 
 void printUsage(const char* b) {
@@ -151,6 +128,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+	setTTYRawmode(handle);
 
 	Initiator initiator(handle);
 

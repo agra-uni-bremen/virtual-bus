@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-std=c++17 -g2 -Wall
 
-INCLUDES=
+INCLUDES=network_io.hpp
 OBJECTS=protocol.o initiator.o responder.o network_io.o
 EXES=initiator-cli responder-cli
 
