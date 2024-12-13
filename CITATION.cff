@@ -1,0 +1,33 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: virtual-bus
+message: >-
+  If you want to cite this software, please use the metadata from this file.
+type: software
+authors:
+  - given-names: Sallar
+    family-names: Ahmadi-Pour
+    email: sallar@uni-bremen.de
+    affiliation: University of Bremen
+    orcid: 'https://orcid.org/0000-0003-4000-6207'
+  - given-names: Pascal
+    family-names: Pieper
+    email: pascal@pieper.de
+    affiliation: German Aerospace Center - DLR e.V.
+    orcid: 'https://orcid.org/0000-0002-7155-2537'
+  - given-names: Rolf
+    family-names: Drechsler
+    email: drechsler@uni-bremen.de
+    affiliation: University of Bremen
+    orcid: 'https://orcid.org/0000-0002-9872-1740'
+identifiers:
+  - type: doi
+    value: arXiv:2311.00442
+    description: >-
+      Virtual-Peripheral-in-the-Loop : A Hardware-in-the-Loop Strategy to Bridge the VP/RTL Design-Gap
+repository-code: 'https://github.com/agra-uni-bremen/vpil-hw/'
+abstract: >-
+  Virtual-Peripheral-in-the-Loop : A Hardware-in-the-Loop Strategy to Bridge the VP/RTL Design-Gap 
+license: MIT
